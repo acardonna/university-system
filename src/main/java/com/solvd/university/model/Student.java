@@ -1,0 +1,222 @@
+package com.solvd.university.model;
+
+import com.solvd.university.model.exception.InvalidPaymentException;
+
+import java.text.NumberFormat;
+import java.util.*;
+
+public class Student extends Person implements Identifiable, Enrollable, Payable {
+
+    private int age;
+    private final int studentNumber;
+    private final String id;
+    private Program enrolledProgram;
+    private EnrollmentStatus enrollmentStatus;
+    private GradeLevel gradeLevel;
+    private boolean isRegistered;
+    private double balance;
+    private List<Grade<Double>> grades;
+    private HashSet<Course<?, ?>> enrolledCourses;
+    private static final NumberFormat numberFormat = NumberFormat.getCurrencyInstance(Locale.of("en", "US"));
+
+    public Student(String firstName, String lastName, int age, String email) {
+        super(firstName, lastName, email);
+        this.age = age;
+        enrolledProgram = null;
+        enrollmentStatus = EnrollmentStatus.INACTIVE;
+        gradeLevel = GradeLevel.FRESHMAN;
+        isRegistered = false;
+        studentNumber = generateRandomId();
+        id = "STU-" + studentNumber;
+        balance = 0.0;
+        this.grades = new ArrayList<>();
+        this.enrolledCourses = new HashSet<>();
+    }
+
+    private static int generateRandomId() {
+        return Math.abs(UUID.randomUUID().hashCode() % 900000) + 100000;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public int getStudentId() {
+        return studentNumber;
+    }
+
+    public Program getEnrolledProgram() {
+        return enrolledProgram;
+    }
+
+    public void setEnrolledProgram(Program enrolledProgram) {
+        this.enrolledProgram = enrolledProgram;
+    }
+
+    public EnrollmentStatus getEnrollmentStatus() {
+        return enrollmentStatus;
+    }
+
+    public void setEnrollmentStatus(EnrollmentStatus enrollmentStatus) {
+        this.enrollmentStatus = enrollmentStatus;
+    }
+
+    public GradeLevel getGradeLevel() {
+        return gradeLevel;
+    }
+
+    public void setGradeLevel(GradeLevel gradeLevel) {
+        this.gradeLevel = gradeLevel;
+    }
+
+    public void advanceGradeLevel() {
+        switch (gradeLevel) {
+            case FRESHMAN -> gradeLevel = GradeLevel.SOPHOMORE;
+            case SOPHOMORE -> gradeLevel = GradeLevel.JUNIOR;
+            case JUNIOR -> gradeLevel = GradeLevel.SENIOR;
+            case SENIOR -> gradeLevel = GradeLevel.GRADUATE;
+            case GRADUATE -> {}
+        }
+    }
+
+    public boolean isEnrolled() {
+        return enrollmentStatus == EnrollmentStatus.ACTIVE;
+    }
+
+    public void setEnrolled(boolean enrolled) {
+        this.enrollmentStatus = enrolled ? EnrollmentStatus.ACTIVE : EnrollmentStatus.INACTIVE;
+    }
+
+    public boolean isRegistered() {
+        return isRegistered;
+    }
+
+    public void setRegistered(boolean registered) {
+        isRegistered = registered;
+    }
+
+    public void addGrade(Grade<Double> grade) {
+        grades.add(grade);
+    }
+
+    public List<Grade<Double>> getGrades() {
+        return new ArrayList<>(grades);
+    }
+
+    public List<Grade<Double>> getGradesForSemester(String semester) {
+        return grades.stream()
+                .filter(grade -> grade.getSemester().equals(semester))
+                .toList();
+    }
+
+    public double calculateAverageGrade() {
+        if (grades.isEmpty()) {
+            return 0.0;
+        }
+        return grades.stream()
+                .mapToDouble(Grade::getValue)
+                .average()
+                .orElse(0.0);
+    }
+
+    public double calculateSemesterAverage(String semester) {
+        List<Grade<Double>> semesterGrades = getGradesForSemester(semester);
+        if (semesterGrades.isEmpty()) {
+            return 0.0;
+        }
+        return semesterGrades.stream()
+                .mapToDouble(Grade::getValue)
+                .average()
+                .orElse(0.0);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Student student = (Student) o;
+        return studentNumber == student.studentNumber;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(studentNumber);
+    }
+
+    @Override
+    public String toString() {
+        return "Student{"
+                + "name='" + getFullName() + '\''
+                + ", age=" + age
+                + ", email='" + email + '\''
+                + ", studentNumber=" + studentNumber
+                + ", gradeLevel=" + gradeLevel.getDisplayName() + " (Year " + gradeLevel.getYear() + ")"
+                + ", enrolledProgram=" + enrolledProgram
+                + ", enrollmentStatus=" + enrollmentStatus
+                + ", isRegistered=" + isRegistered
+                + ", balance=" + balance
+                + ", averageGrade=" + String.format("%.2f", calculateAverageGrade())
+                + ", totalGrades=" + grades.size()
+                + '}';
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public void enroll(Program program) {
+        this.enrolledProgram = program;
+        this.enrollmentStatus = EnrollmentStatus.ACTIVE;
+        this.balance += program.getRawPrice();
+    }
+
+    @Override
+    public double getOutstandingBalance() {
+        return balance;
+    }
+
+    @Override
+    public void makePayment(double amount) throws InvalidPaymentException {
+        if (amount <= 0) {
+            throw new InvalidPaymentException("Payment must be greater than zero.");
+        }
+        if (amount > balance) {
+            throw new InvalidPaymentException("Payment amount ($" + String.format("%.2f", amount) + ") exceeds outstanding balance ($" + String.format("%.2f", balance) + "). Please enter a valid payment amount.");
+        }
+        balance = balance - amount;
+    }
+
+    public String getOutstandingBalanceFormatted() {
+        return numberFormat.format(balance);
+    }
+
+    public boolean enrollInCourse(Course<?, ?> course) {
+        return enrolledCourses.add(course);
+    }
+
+    public boolean isEnrolledInCourse(Course<?, ?> course) {
+        return enrolledCourses.contains(course);
+    }
+
+    public void dropCourse(Course<?, ?> course) {
+        enrolledCourses.remove(course);
+    }
+
+    public Set<Course<?, ?>> getEnrolledCourses() {
+        return new HashSet<>(enrolledCourses);
+    }
+
+    public int getEnrolledCoursesCount() {
+        return enrolledCourses.size();
+    }
+}

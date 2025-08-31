@@ -32,21 +32,32 @@ public class Main {
     private static void workWithFiles(Scanner scanner) {
         try {
             List<String> text = FileUtils.readLines(new File("src/main/resources/input.txt"), StandardCharsets.UTF_8);
-            System.out.print("Enter the word to find: ");
-            String wordToFind = scanner.nextLine();
-            int count = 0;
 
-            for (String line : text) {
-                if (StringUtils.containsIgnoreCase(line, wordToFind)) {
-                    count += 1;
+            while (true) {
+                System.out.print("Enter the word to find (or 0 to exit): ");
+                String wordToFind = scanner.nextLine();
+
+                if ("0".equals(wordToFind)) {
+                    break;
                 }
+
+                int count = 0;
+
+                for (String line : text) {
+                    String[] words = StringUtils.split(line);
+                    for (String word : words) {
+                        String strippedWord = StringUtils.strip(word, ".,;:!?\"'()[]{}");
+                        if (StringUtils.equalsIgnoreCase(strippedWord, wordToFind)) {
+                            count++;
+                        }
+                    }
+                }
+
+                String message = String.format("%s: %d%n", wordToFind, count);
+                FileUtils.writeStringToFile(new File("src/main/resources/output.txt"), message, StandardCharsets.UTF_8, true);
+
+                System.out.println(message);
             }
-
-            String message = String.format("%s: %d%n", wordToFind, count);
-            FileUtils.writeStringToFile(new File("src/main/resources/output.txt"), message, StandardCharsets.UTF_8, true);
-
-            System.out.println(message);
-
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }

@@ -22,6 +22,23 @@ public class UserInterface {
     Scanner scanner;
     University university;
 
+    private static final GradeValidator STANDARD_GRADE_VALIDATOR = grade -> grade >= 0.0 && grade <= 100.0;
+    private static final GradeValidator PASSING_GRADE_VALIDATOR = grade -> grade >= 60.0 && grade <= 100.0;
+
+    private static final StudentFilter ACTIVE_STUDENTS = Student::isEnrolled;
+    private static final StudentFilter HONOR_STUDENTS = student -> student.calculateAverageGrade() >= 90.0;
+    private static final StudentFilter STUDENTS_WITH_DEBT = student -> student.getOutstandingBalance() > 0;
+
+    private static final CourseFormatter SIMPLE_COURSE_FORMAT = course -> String.format("%s - %s",
+            course.getCourseCode(), course.getCourseName());
+    private static final CourseFormatter DETAILED_COURSE_FORMAT = course -> String.format(
+            "%s - %s (%d credits) - %s [%s]",
+            course.getCourseCode(),
+            course.getCourseName(),
+            course.getCreditHours(),
+            course.getProfessor().getFullName(),
+            course.getDifficulty().getDisplayName());
+
     public UserInterface(Scanner scanner, University university) {
         this.scanner = scanner;
         this.university = university;
@@ -154,8 +171,8 @@ public class UserInterface {
 
         String statusMessage = student.isEnrolled()
                 ? String.format("You are enrolled in %s (Status: %s)",
-                        student.getEnrolledProgram().getName(),
-                        student.getEnrollmentStatus().getDisplayName())
+                student.getEnrolledProgram().getName(),
+                student.getEnrollmentStatus().getDisplayName())
                 : "No enrollment yet (Status: " + student.getEnrollmentStatus().getDisplayName() + ")";
 
         LOGGER.info("Current Status: " + statusMessage);
@@ -221,6 +238,9 @@ public class UserInterface {
 
         LOGGER.info(String.format("Overall Average: %.2f", student.calculateAverageGrade()));
         LOGGER.info(String.format("Total Courses: %d", grades.size()));
+
+        boolean isPassing = PASSING_GRADE_VALIDATOR.isValid(student.calculateAverageGrade());
+        LOGGER.info(String.format("Academic Standing: %s", isPassing ? "Good Standing" : "Academic Probation"));
         LOGGER.info("");
 
         Map<String, List<Grade<Double>>> gradesBySemester = grades.stream()
@@ -231,13 +251,19 @@ public class UserInterface {
             List<Grade<Double>> semesterGrades = entry.getValue();
 
             LOGGER.info(String.format("=== %s ===", semester));
-            LOGGER.info(String.format("Semester Average: %.2f", student.calculateSemesterAverage(semester)));
+            double semesterAvg = student.calculateSemesterAverage(semester);
+            LOGGER.info(String.format("Semester Average: %.2f", semesterAvg));
+
+            boolean semesterPassing = PASSING_GRADE_VALIDATOR.isValid(semesterAvg);
+            LOGGER.info(String.format("Semester Status: %s", semesterPassing ? "Satisfactory" : "Needs Improvement"));
             LOGGER.info("");
 
             semesterGrades.forEach(grade -> {
                 String letterGrade = convertToLetterGrade(grade.getValue());
-                LOGGER.info(String.format("  %-30s | %.1f (%s)",
-                        grade.getSubject(), grade.getValue(), letterGrade));
+                boolean gradeValid = STANDARD_GRADE_VALIDATOR.isValid(grade.getValue());
+                String validationMark = gradeValid ? "✓" : "⚠";
+                LOGGER.info(String.format("  %-30s | %.1f (%s) %s",
+                        grade.getSubject(), grade.getValue(), letterGrade, validationMark));
             });
             LOGGER.info("");
         });
@@ -354,7 +380,7 @@ public class UserInterface {
     }
 
     private void showAvailablePrograms(Student student) {
-        Map<Department, List<Program>> availablePrograms = university.getProgramCatalog().stream()
+        Map<Department<?>, List<Program>> availablePrograms = university.getProgramCatalog().stream()
                 .collect(Collectors.groupingBy(Program::getDepartment));
 
         List<Program> programsList = new ArrayList<>();
@@ -400,7 +426,7 @@ public class UserInterface {
     }
 
     private void showAvailableProgramsAsGuest() {
-        Map<Department, List<Program>> availablePrograms = university.getProgramCatalog().stream()
+        Map<Department<?>, List<Program>> availablePrograms = university.getProgramCatalog().stream()
                 .collect(Collectors.groupingBy(Program::getDepartment));
 
         LOGGER.info("=== Available Programs ===");
@@ -434,6 +460,25 @@ public class UserInterface {
         LOGGER.info("");
         LOGGER.info("=== Student Enrollment Statistics ===");
 
+        List<Student> activeStudents = university.findStudents(ACTIVE_STUDENTS);
+        List<Student> honorStudents = university.findStudents(HONOR_STUDENTS);
+        List<Student> studentsWithDebt = university.findStudents(STUDENTS_WITH_DEBT);
+
+        LOGGER.info(String.format("Total Students: %d", university.getStudentRegistry().size()));
+        LOGGER.info(String.format("Active Students: %d", activeStudents.size()));
+        LOGGER.info(String.format("Honor Students (≥90%% avg): %d", honorStudents.size()));
+        LOGGER.info(String.format("Students with Outstanding Balance: %d", studentsWithDebt.size()));
+        LOGGER.info("");
+
+        if (!honorStudents.isEmpty()) {
+            LOGGER.info("Honor Students:");
+            honorStudents.stream()
+                    .limit(5)
+                    .forEach(student -> LOGGER.info(String.format("   - %s (%.1f%% avg)",
+                            student.getFullName(), student.calculateAverageGrade())));
+            LOGGER.info("");
+        }
+
         Map<EnrollmentStatus, List<Student>> studentsByStatus = university.getStudentRegistry().stream()
                 .collect(Collectors.groupingBy(Student::getEnrollmentStatus));
 
@@ -456,11 +501,11 @@ public class UserInterface {
 
         LOGGER.info("=== Popular Courses by Difficulty ===");
 
-        Map<CourseDifficulty, List<Course>> coursesByDifficulty = university.getCourseCatalog().stream()
+        Map<CourseDifficulty, List<Course<?, ?>>> coursesByDifficulty = university.getCourseCatalog().stream()
                 .collect(Collectors.groupingBy(Course::getDifficulty));
 
         java.util.Arrays.stream(CourseDifficulty.values()).forEach(difficulty -> {
-            List<Course> coursesAtLevel = coursesByDifficulty.getOrDefault(difficulty, new ArrayList<>());
+            List<Course<?, ?>> coursesAtLevel = coursesByDifficulty.getOrDefault(difficulty, new ArrayList<>());
             if (!coursesAtLevel.isEmpty()) {
                 LOGGER.info(String.format("--- %s Level Courses (Level %d) ---",
                         difficulty.getDisplayName(), difficulty.getLevel()));
@@ -472,9 +517,16 @@ public class UserInterface {
         });
 
         LOGGER.info("=== All Courses ===");
-        university.getCourseCatalog().forEach(course -> {
-            LOGGER.info(course.toString());
-        });
+
+        List<String> simpleCourseList = university.formatCourses(SIMPLE_COURSE_FORMAT);
+        List<String> detailedCourseList = university.formatCourses(DETAILED_COURSE_FORMAT);
+
+        LOGGER.info("Simple Format:");
+        simpleCourseList.forEach(course -> LOGGER.info("  " + course));
+
+        LOGGER.info("");
+        LOGGER.info("Detailed Format:");
+        detailedCourseList.forEach(course -> LOGGER.info("  " + course));
 
         LOGGER.info("");
         LOGGER.info("=== Classrooms ===");

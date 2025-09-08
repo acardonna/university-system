@@ -8,7 +8,6 @@ import java.util.Scanner;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,7 +26,6 @@ import com.solvd.university.model.Program;
 import com.solvd.university.model.University;
 import com.solvd.university.model.UserInterface;
 
-
 public class Main {
 
     private static final Logger LOGGER = LogManager.getLogger();
@@ -36,15 +34,15 @@ public class Main {
 
         Scanner scanner = new Scanner(System.in);
 
-        University university = new University("Oxford");
+        // University university = new University("Oxford");
 
-        initializeProgramCatalog(university);
-        initializeProfessors(university);
-        initializeCourses(university);
-        initializeClassrooms(university);
+        // initializeProgramCatalog(university);
+        // initializeProfessors(university);
+        // initializeCourses(university);
+        // initializeClassrooms(university);
 
-        UserInterface userInterface = new UserInterface(scanner, university);
-        userInterface.start();
+        // UserInterface userInterface = new UserInterface(scanner, university);
+        // userInterface.start();
 
         workWithFiles(scanner);
     }
@@ -54,9 +52,9 @@ public class Main {
             List<String> text = FileUtils.readLines(new File("src/main/resources/input.txt"), StandardCharsets.UTF_8);
 
             java.util.stream.Stream.generate(() -> {
-                LOGGER.info("Enter the word to find (or 0 to exit): ");
-                return scanner.nextLine();
-            })
+                        LOGGER.info("Enter the word to find (or 0 to exit): ");
+                        return scanner.nextLine();
+                    })
                     .takeWhile(wordToFind -> !"0".equals(wordToFind))
                     .forEach(wordToFind -> {
                         int count = (int) text.stream()

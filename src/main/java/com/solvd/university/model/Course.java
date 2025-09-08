@@ -1,7 +1,12 @@
 package com.solvd.university.model;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Objects;
+import java.util.TreeMap;
 
 public class Course<T, D extends Department<T>> implements Identifiable, Schedulable {
 
@@ -49,7 +54,8 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
         this.difficulty = CourseDifficulty.INTRODUCTORY;
     }
 
-    public Course(String courseCode, String courseName, int creditHours, Professor professor, D department, CourseDifficulty difficulty) {
+    public Course(String courseCode, String courseName, int creditHours, Professor professor, D department,
+                  CourseDifficulty difficulty) {
         this.courseCode = courseCode;
         this.courseName = courseName;
         this.creditHours = creditHours;
@@ -61,7 +67,8 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
         this.difficulty = difficulty;
     }
 
-    public Course(int courseNumber, String courseName, int creditHours, Professor professor, D department, CourseDifficulty difficulty) {
+    public Course(int courseNumber, String courseName, int creditHours, Professor professor, D department,
+                  CourseDifficulty difficulty) {
         this.courseCode = department.getDepartmentCode() + String.valueOf(courseNumber);
         this.courseName = courseName;
         this.creditHours = creditHours;
@@ -142,9 +149,27 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
         gradesByDate.put(LocalDateTime.now(), grade);
     }
 
+    public void addGrade(Grade<Double> grade, GradeValidator validator) {
+        if (validator.isValid(grade.getValue())) {
+            courseGrades.add(grade);
+            gradesByDate.put(LocalDateTime.now(), grade);
+        } else {
+            throw new IllegalArgumentException("Invalid grade value: " + grade.getValue());
+        }
+    }
+
     public void addGradeWithDate(Grade<Double> grade, LocalDateTime date) {
         courseGrades.add(grade);
         gradesByDate.put(date, grade);
+    }
+
+    public void addGradeWithDate(Grade<Double> grade, LocalDateTime date, GradeValidator validator) {
+        if (validator.isValid(grade.getValue())) {
+            courseGrades.add(grade);
+            gradesByDate.put(date, grade);
+        } else {
+            throw new IllegalArgumentException("Invalid grade value: " + grade.getValue());
+        }
     }
 
     public List<Grade<Double>> getCourseGrades() {
@@ -189,7 +214,9 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
             return false;
         }
         Course<?, ?> course = (Course<?, ?>) o;
-        return creditHours == course.creditHours && Objects.equals(courseCode, course.courseCode) && Objects.equals(courseName, course.courseName) && Objects.equals(professor, course.professor) && Objects.equals(department, course.department);
+        return creditHours == course.creditHours && Objects.equals(courseCode, course.courseCode)
+                && Objects.equals(courseName, course.courseName) && Objects.equals(professor, course.professor)
+                && Objects.equals(department, course.department);
     }
 
     @Override
@@ -200,7 +227,8 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
     @Override
     public String toString() {
         String sched = (start != null && end != null && classroom != null)
-                ? String.format(" | %s to %s in %s %s", start, end, classroom.getBuilding().getName(), classroom.getRoomNumber())
+                ? String.format(" | %s to %s in %s %s", start, end, classroom.getBuilding().getName(),
+                classroom.getRoomNumber())
                 : "";
         String gradeInfo = courseGrades.isEmpty()
                 ? ""
@@ -209,6 +237,7 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
                 ? String.format(" | Difficulty: %s", difficulty.getDisplayName())
                 : "";
         return String.format("%s - %s | %d Credit Hours | Professor: %s | Department: %s%s%s%s",
-                getFormattedCourseCode(), courseName, creditHours, professor.getFullName(), department.getName(), difficultyInfo, sched, gradeInfo);
+                getFormattedCourseCode(), courseName, creditHours, professor.getFullName(), department.getName(),
+                difficultyInfo, sched, gradeInfo);
     }
 }

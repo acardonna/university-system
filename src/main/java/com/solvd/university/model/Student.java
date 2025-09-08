@@ -1,9 +1,15 @@
 package com.solvd.university.model;
 
-import com.solvd.university.model.exception.InvalidPaymentException;
-
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+
+import com.solvd.university.model.exception.InvalidPaymentException;
 
 public class Student extends Person implements Identifiable, Enrollable, Payable {
 
@@ -79,7 +85,8 @@ public class Student extends Person implements Identifiable, Enrollable, Payable
             case SOPHOMORE -> gradeLevel = GradeLevel.JUNIOR;
             case JUNIOR -> gradeLevel = GradeLevel.SENIOR;
             case SENIOR -> gradeLevel = GradeLevel.GRADUATE;
-            case GRADUATE -> {}
+            case GRADUATE -> {
+            }
         }
     }
 
@@ -101,6 +108,14 @@ public class Student extends Person implements Identifiable, Enrollable, Payable
 
     public void addGrade(Grade<Double> grade) {
         grades.add(grade);
+    }
+
+    public void addGrade(Grade<Double> grade, GradeValidator validator) {
+        if (validator.isValid(grade.getValue())) {
+            grades.add(grade);
+        } else {
+            throw new IllegalArgumentException("Invalid grade value: " + grade.getValue());
+        }
     }
 
     public List<Grade<Double>> getGrades() {
@@ -191,7 +206,9 @@ public class Student extends Person implements Identifiable, Enrollable, Payable
             throw new InvalidPaymentException("Payment must be greater than zero.");
         }
         if (amount > balance) {
-            throw new InvalidPaymentException("Payment amount ($" + String.format("%.2f", amount) + ") exceeds outstanding balance ($" + String.format("%.2f", balance) + "). Please enter a valid payment amount.");
+            throw new InvalidPaymentException(
+                    "Payment amount ($" + String.format("%.2f", amount) + ") exceeds outstanding balance ($"
+                            + String.format("%.2f", balance) + "). Please enter a valid payment amount.");
         }
         balance = balance - amount;
     }

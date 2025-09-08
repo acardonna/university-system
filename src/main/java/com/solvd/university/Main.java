@@ -1,30 +1,50 @@
 package com.solvd.university;
 
-import com.solvd.university.model.*;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Scanner;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.solvd.university.model.ArtsDepartment;
+import com.solvd.university.model.Building;
+import com.solvd.university.model.BusinessDepartment;
+import com.solvd.university.model.Classroom;
+import com.solvd.university.model.ComputerScienceDepartment;
+import com.solvd.university.model.Course;
+import com.solvd.university.model.CourseDifficulty;
+import com.solvd.university.model.Department;
+import com.solvd.university.model.EngineeringDepartment;
+import com.solvd.university.model.MathematicsDepartment;
+import com.solvd.university.model.Professor;
+import com.solvd.university.model.Program;
+import com.solvd.university.model.University;
+import com.solvd.university.model.UserInterface;
+
+
 public class Main {
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public static void main(String[] args) {
 
         Scanner scanner = new Scanner(System.in);
 
-//        University university = new University("Oxford");
-//
-//        initializeProgramCatalog(university);
-//        initializeProfessors(university);
-//        initializeCourses(university);
-//        initializeClassrooms(university);
-//
-//        UserInterface userInterface = new UserInterface(scanner, university);
-//        userInterface.start();
+        University university = new University("Oxford");
+
+        initializeProgramCatalog(university);
+        initializeProfessors(university);
+        initializeCourses(university);
+        initializeClassrooms(university);
+
+        UserInterface userInterface = new UserInterface(scanner, university);
+        userInterface.start();
 
         workWithFiles(scanner);
     }
@@ -33,33 +53,31 @@ public class Main {
         try {
             List<String> text = FileUtils.readLines(new File("src/main/resources/input.txt"), StandardCharsets.UTF_8);
 
-            while (true) {
-                System.out.print("Enter the word to find (or 0 to exit): ");
-                String wordToFind = scanner.nextLine();
+            java.util.stream.Stream.generate(() -> {
+                LOGGER.info("Enter the word to find (or 0 to exit): ");
+                return scanner.nextLine();
+            })
+                    .takeWhile(wordToFind -> !"0".equals(wordToFind))
+                    .forEach(wordToFind -> {
+                        int count = (int) text.stream()
+                                .flatMap(line -> java.util.Arrays.stream(StringUtils.split(line)))
+                                .map(word -> StringUtils.strip(word, ".,;:!?\"'()[]{}"))
+                                .filter(strippedWord -> strippedWord.equalsIgnoreCase(wordToFind))
+                                .count();
 
-                if ("0".equals(wordToFind)) {
-                    break;
-                }
-
-                int count = 0;
-
-                for (String line : text) {
-                    String[] words = StringUtils.split(line);
-                    for (String word : words) {
-                        String strippedWord = StringUtils.strip(word, ".,;:!?\"'()[]{}");
-                        if (StringUtils.equalsIgnoreCase(strippedWord, wordToFind)) {
-                            count++;
+                        String message = String.format("%s: %d%n", wordToFind, count);
+                        try {
+                            FileUtils.writeStringToFile(new File("src/main/resources/output.txt"), message,
+                                    StandardCharsets.UTF_8,
+                                    true);
+                        } catch (IOException e) {
+                            LOGGER.info("Error writing to file: " + e.getMessage());
                         }
-                    }
-                }
 
-                String message = String.format("%s: %d%n", wordToFind, count);
-                FileUtils.writeStringToFile(new File("src/main/resources/output.txt"), message, StandardCharsets.UTF_8, true);
-
-                System.out.println(message);
-            }
+                        LOGGER.info(message);
+                    });
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            LOGGER.info(e.getMessage());
         }
     }
 
@@ -72,7 +90,8 @@ public class Main {
 
         university.getProgramCatalog().add(new Program("Bachelor of Computer Science", 4, 40000.0, computerScience));
         university.getProgramCatalog().add(new Program("Master of Software Engineering", 2, 30000.0, computerScience));
-        university.getProgramCatalog().add(new Program("Bachelor of Information Technology", 4, 38000.0, computerScience));
+        university.getProgramCatalog()
+                .add(new Program("Bachelor of Information Technology", 4, 38000.0, computerScience));
         university.getProgramCatalog().add(new Program("Master of Data Science", 2, 35000.0, computerScience));
 
         university.getProgramCatalog().add(new Program("Bachelor of Business Administration", 4, 35000.0, business));
@@ -114,9 +133,13 @@ public class Main {
         Professor johnSmith = university.getProfessorRegistry().get(0);
         Professor sarahJohnson = university.getProfessorRegistry().get(1);
 
-        Course<String, ComputerScienceDepartment> introductionToProgramming = new Course<>(101, "Introduction to Programming", 3, johnSmith, new ComputerScienceDepartment(), CourseDifficulty.INTRODUCTORY);
-        Course<String, ComputerScienceDepartment> dataStructures = new Course<>(201, "Data Structures", 4, johnSmith, new ComputerScienceDepartment(), CourseDifficulty.INTERMEDIATE);
-        Course<String, BusinessDepartment> businessFundamentals = new Course<>(101, "Business Fundamentals", 3, sarahJohnson, new BusinessDepartment(), CourseDifficulty.INTRODUCTORY);
+        Course<String, ComputerScienceDepartment> introductionToProgramming = new Course<>(101,
+                "Introduction to Programming", 3, johnSmith, new ComputerScienceDepartment(),
+                CourseDifficulty.INTRODUCTORY);
+        Course<String, ComputerScienceDepartment> dataStructures = new Course<>(201, "Data Structures", 4, johnSmith,
+                new ComputerScienceDepartment(), CourseDifficulty.INTERMEDIATE);
+        Course<String, BusinessDepartment> businessFundamentals = new Course<>(101, "Business Fundamentals", 3,
+                sarahJohnson, new BusinessDepartment(), CourseDifficulty.INTRODUCTORY);
 
         johnSmith.assignCourse(introductionToProgramming);
         johnSmith.assignCourse(dataStructures);

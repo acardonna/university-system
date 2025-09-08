@@ -1,22 +1,26 @@
 package com.solvd.university.model;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import com.solvd.university.model.exception.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.solvd.university.model.exception.AlreadyEnrolledException;
+import com.solvd.university.model.exception.DuplicateRegistrationException;
+import com.solvd.university.model.exception.InvalidPaymentException;
+import com.solvd.university.model.exception.StudentNotEnrolledException;
+import com.solvd.university.model.exception.StudentNotFoundException;
 
 public class UserInterface {
     private static final Logger LOGGER = LogManager.getLogger();
 
     Scanner scanner;
     University university;
-
 
     public UserInterface(Scanner scanner, University university) {
         this.scanner = scanner;
@@ -64,12 +68,14 @@ public class UserInterface {
         }
     }
 
-    private void registerStudent(String firstName, String lastName, int age, String email) throws DuplicateRegistrationException {
+    private void registerStudent(String firstName, String lastName, int age, String email)
+            throws DuplicateRegistrationException {
         boolean isAlreadyRegistered = university.getStudentRegistry().stream()
                 .anyMatch(existingStudent -> existingStudent.getEmail().equalsIgnoreCase(email));
 
         if (isAlreadyRegistered) {
-            throw new DuplicateRegistrationException("Student with email '" + email + "' is already registered. Please log in instead.");
+            throw new DuplicateRegistrationException(
+                    "Student with email '" + email + "' is already registered. Please log in instead.");
         }
 
         Student student = new Student(firstName, lastName, age, email);
@@ -107,7 +113,8 @@ public class UserInterface {
                 .filter(student -> student.getEmail().equals(email))
                 .filter(student -> student.getStudentId() == studentId)
                 .findFirst()
-                .orElseThrow(() -> new StudentNotFoundException("No student found with email '" + email + "' and Student ID '" + studentId + "'. Please check your credentials."));
+                .orElseThrow(() -> new StudentNotFoundException("No student found with email '" + email
+                        + "' and Student ID '" + studentId + "'. Please check your credentials."));
     }
 
     private void entryMessage() {
@@ -141,14 +148,14 @@ public class UserInterface {
 
         LOGGER.info(String.format("Welcome, %s!", student.getFullName()));
         LOGGER.info(String.format("Academic Level: %s (Year %d)",
-            student.getGradeLevel().getDisplayName(),
-            student.getGradeLevel().getYear()));
+                student.getGradeLevel().getDisplayName(),
+                student.getGradeLevel().getYear()));
         LOGGER.info("");
 
         String statusMessage = student.isEnrolled()
                 ? String.format("You are enrolled in %s (Status: %s)",
-                    student.getEnrolledProgram().getName(),
-                    student.getEnrollmentStatus().getDisplayName())
+                        student.getEnrolledProgram().getName(),
+                        student.getEnrollmentStatus().getDisplayName())
                 : "No enrollment yet (Status: " + student.getEnrollmentStatus().getDisplayName() + ")";
 
         LOGGER.info("Current Status: " + statusMessage);
@@ -199,7 +206,7 @@ public class UserInterface {
         }
     }
 
-    //TODO: implement the functionality to manually add grades
+    // TODO: implement the functionality to manually add grades
     private void viewStudentGrades(Student student) {
         LOGGER.info("=== My Academic Record ===");
         LOGGER.info("");
@@ -219,7 +226,7 @@ public class UserInterface {
         Map<String, List<Grade<Double>>> gradesBySemester = grades.stream()
                 .collect(Collectors.groupingBy(Grade::getSemester));
 
-        for (Map.Entry<String, List<Grade<Double>>> entry : gradesBySemester.entrySet()) {
+        gradesBySemester.entrySet().forEach(entry -> {
             String semester = entry.getKey();
             List<Grade<Double>> semesterGrades = entry.getValue();
 
@@ -227,13 +234,13 @@ public class UserInterface {
             LOGGER.info(String.format("Semester Average: %.2f", student.calculateSemesterAverage(semester)));
             LOGGER.info("");
 
-            for (Grade<Double> grade : semesterGrades) {
+            semesterGrades.forEach(grade -> {
                 String letterGrade = convertToLetterGrade(grade.getValue());
                 LOGGER.info(String.format("  %-30s | %.1f (%s)",
-                    grade.getSubject(), grade.getValue(), letterGrade));
-            }
+                        grade.getSubject(), grade.getValue(), letterGrade));
+            });
             LOGGER.info("");
-        }
+        });
 
         long aGrades = grades.stream().filter(g -> g.getValue() >= 90).count();
         long bGrades = grades.stream().filter(g -> g.getValue() >= 80 && g.getValue() < 90).count();
@@ -243,29 +250,43 @@ public class UserInterface {
 
         LOGGER.info("=== Grade Distribution ===");
         LOGGER.info(String.format("A's: %d | B's: %d | C's: %d | D's: %d | F's: %d",
-            aGrades, bGrades, cGrades, dGrades, fGrades));
+                aGrades, bGrades, cGrades, dGrades, fGrades));
         LOGGER.info("");
     }
 
     private String convertToLetterGrade(double numericGrade) {
-        if (numericGrade >= 97) return "A+";
-        else if (numericGrade >= 93) return "A";
-        else if (numericGrade >= 90) return "A-";
-        else if (numericGrade >= 87) return "B+";
-        else if (numericGrade >= 83) return "B";
-        else if (numericGrade >= 80) return "B-";
-        else if (numericGrade >= 77) return "C+";
-        else if (numericGrade >= 73) return "C";
-        else if (numericGrade >= 70) return "C-";
-        else if (numericGrade >= 67) return "D+";
-        else if (numericGrade >= 63) return "D";
-        else if (numericGrade >= 60) return "D-";
-        else return "F";
+        if (numericGrade >= 97)
+            return "A+";
+        else if (numericGrade >= 93)
+            return "A";
+        else if (numericGrade >= 90)
+            return "A-";
+        else if (numericGrade >= 87)
+            return "B+";
+        else if (numericGrade >= 83)
+            return "B";
+        else if (numericGrade >= 80)
+            return "B-";
+        else if (numericGrade >= 77)
+            return "C+";
+        else if (numericGrade >= 73)
+            return "C";
+        else if (numericGrade >= 70)
+            return "C-";
+        else if (numericGrade >= 67)
+            return "D+";
+        else if (numericGrade >= 63)
+            return "D";
+        else if (numericGrade >= 60)
+            return "D-";
+        else
+            return "F";
     }
 
     private void viewEnrollmentDetails(Student student) throws StudentNotEnrolledException {
         if (!student.isEnrolled()) {
-            throw new StudentNotEnrolledException("Student must be enrolled in a program to view enrollment details. Please enroll in a program first.");
+            throw new StudentNotEnrolledException(
+                    "Student must be enrolled in a program to view enrollment details. Please enroll in a program first.");
         }
 
         Enrollment studentEnrollment = university.getEnrollments().stream()
@@ -277,7 +298,8 @@ public class UserInterface {
         LOGGER.info("");
 
         LOGGER.info("Student: " + student.getFullName());
-        LOGGER.info("Academic Level: " + student.getGradeLevel().getDisplayName() + " (Year " + student.getGradeLevel().getYear() + ")");
+        LOGGER.info("Academic Level: " + student.getGradeLevel().getDisplayName() + " (Year "
+                + student.getGradeLevel().getYear() + ")");
         LOGGER.info("Program: " + student.getEnrolledProgram().getName());
         LOGGER.info("Department: " + student.getEnrolledProgram().getDepartment().getName());
         LOGGER.info("Program Price: " + student.getEnrolledProgram().getPrice());
@@ -293,14 +315,16 @@ public class UserInterface {
 
     private void handleEnrollment(Student student) throws AlreadyEnrolledException {
         if (student.isEnrolled()) {
-            throw new AlreadyEnrolledException("Student is already enrolled in '" + student.getEnrolledProgram().getName() + "'. Cannot enroll in multiple programs simultaneously.");
+            throw new AlreadyEnrolledException("Student is already enrolled in '"
+                    + student.getEnrolledProgram().getName() + "'. Cannot enroll in multiple programs simultaneously.");
         }
         showAvailablePrograms(student);
     }
 
     private void handlePayment(Student student) throws StudentNotEnrolledException, InvalidPaymentException {
         if (!student.isEnrolled()) {
-            throw new StudentNotEnrolledException("Student must be enrolled in a program to make a payment. Please enroll in a program first.");
+            throw new StudentNotEnrolledException(
+                    "Student must be enrolled in a program to make a payment. Please enroll in a program first.");
         }
 
         if (student.getOutstandingBalance() <= 0.0) {
@@ -316,7 +340,9 @@ public class UserInterface {
         }
 
         if (payment > student.getOutstandingBalance()) {
-            throw new InvalidPaymentException("Payment amount ($" + String.format("%.2f", payment) + ") exceeds outstanding balance ($" + String.format("%.2f", student.getOutstandingBalance()) + "). Please enter a valid payment amount.");
+            throw new InvalidPaymentException("Payment amount ($" + String.format("%.2f", payment)
+                    + ") exceeds outstanding balance ($" + String.format("%.2f", student.getOutstandingBalance())
+                    + "). Please enter a valid payment amount.");
         }
 
         student.makePayment(payment);
@@ -332,19 +358,19 @@ public class UserInterface {
                 .collect(Collectors.groupingBy(Program::getDepartment));
 
         List<Program> programsList = new ArrayList<>();
-        int programsOrder = 1;
+        AtomicInteger programsOrder = new AtomicInteger(1);
 
         LOGGER.info("=== Available Programs ===");
 
-        for (Map.Entry<Department, List<Program>> entry : availablePrograms.entrySet()) {
+        availablePrograms.entrySet().forEach(entry -> {
             LOGGER.info("Department: " + entry.getKey().getName() + " (" + entry.getKey().getDepartmentCode() + ")");
-            for (Program program : entry.getValue()) {
-                LOGGER.info(programsOrder + ". " + program.getName());
+            entry.getValue().forEach(program -> {
+                LOGGER.info(programsOrder.get() + ". " + program.getName());
                 programsList.add(program);
-                programsOrder += 1;
-            }
+                programsOrder.incrementAndGet();
+            });
             LOGGER.info("");
-        }
+        });
 
         while (true) {
             LOGGER.info("Enter zero (0) to go back or...");
@@ -380,13 +406,13 @@ public class UserInterface {
         LOGGER.info("=== Available Programs ===");
         LOGGER.info("");
 
-        for (Map.Entry<Department, List<Program>> entry : availablePrograms.entrySet()) {
+        availablePrograms.entrySet().forEach(entry -> {
             LOGGER.info("Department: " + entry.getKey().getName() + " (" + entry.getKey().getDepartmentCode() + ")");
-            for (Program program : entry.getValue()) {
+            entry.getValue().forEach(program -> {
                 LOGGER.info(program.toString());
-            }
+            });
             LOGGER.info("");
-        }
+        });
 
         getIntInput("Enter zero (0) to go back: ");
     }
@@ -394,15 +420,16 @@ public class UserInterface {
     private void showProfessorsAndCourses() {
         LOGGER.info("=== Professors ===");
 
-        for (Professor professor : university.getProfessorRegistry()) {
+        university.getProfessorRegistry().forEach(professor -> {
             LOGGER.info(professor.toString());
             if (!professor.getAssignedCourses().isEmpty()) {
                 LOGGER.info("  Assigned Courses:");
-                for (Course c : professor.getAssignedCourses()) {
-                    LOGGER.info("   - " + c.getCourseName() + " (" + c.getCourseCode() + ") - " + c.getDifficulty().getDisplayName());
-                }
+                professor.getAssignedCourses().forEach(c -> {
+                    LOGGER.info("   - " + c.getCourseName() + " (" + c.getCourseCode() + ") - "
+                            + c.getDifficulty().getDisplayName());
+                });
             }
-        }
+        });
 
         LOGGER.info("");
         LOGGER.info("=== Student Enrollment Statistics ===");
@@ -410,51 +437,51 @@ public class UserInterface {
         Map<EnrollmentStatus, List<Student>> studentsByStatus = university.getStudentRegistry().stream()
                 .collect(Collectors.groupingBy(Student::getEnrollmentStatus));
 
-        for (EnrollmentStatus status : EnrollmentStatus.values()) {
+        java.util.Arrays.stream(EnrollmentStatus.values()).forEach(status -> {
             List<Student> studentsWithStatus = studentsByStatus.getOrDefault(status, new ArrayList<>());
             LOGGER.info(String.format("%s Students: %d (%s)",
-                status.getDisplayName(),
-                studentsWithStatus.size(),
-                status.getDescription()));
+                    status.getDisplayName(),
+                    studentsWithStatus.size(),
+                    status.getDescription()));
 
             if (!studentsWithStatus.isEmpty() && status == EnrollmentStatus.ACTIVE) {
                 LOGGER.info("  Recently Enrolled Students:");
                 studentsWithStatus.stream()
-                    .filter(Student::isEnrolled)
-                    .limit(3)
-                    .forEach(student ->
-                        LOGGER.info("   - " + student.getFullName() + " in " + student.getEnrolledProgram().getName()));
+                        .filter(Student::isEnrolled)
+                        .limit(3)
+                        .forEach(student -> LOGGER.info(
+                                "   - " + student.getFullName() + " in " + student.getEnrolledProgram().getName()));
             }
-        }
+        });
 
         LOGGER.info("=== Popular Courses by Difficulty ===");
 
         Map<CourseDifficulty, List<Course>> coursesByDifficulty = university.getCourseCatalog().stream()
                 .collect(Collectors.groupingBy(Course::getDifficulty));
 
-        for (CourseDifficulty difficulty : CourseDifficulty.values()) {
+        java.util.Arrays.stream(CourseDifficulty.values()).forEach(difficulty -> {
             List<Course> coursesAtLevel = coursesByDifficulty.getOrDefault(difficulty, new ArrayList<>());
             if (!coursesAtLevel.isEmpty()) {
                 LOGGER.info(String.format("--- %s Level Courses (Level %d) ---",
-                    difficulty.getDisplayName(), difficulty.getLevel()));
-                for (Course course : coursesAtLevel) {
+                        difficulty.getDisplayName(), difficulty.getLevel()));
+                coursesAtLevel.forEach(course -> {
                     LOGGER.info("  " + course.toString());
-                }
+                });
                 LOGGER.info("");
             }
-        }
+        });
 
         LOGGER.info("=== All Courses ===");
-        for (Course course : university.getCourseCatalog()) {
+        university.getCourseCatalog().forEach(course -> {
             LOGGER.info(course.toString());
-        }
+        });
 
         LOGGER.info("");
         LOGGER.info("=== Classrooms ===");
 
-        for (Classroom classroom : university.getClassrooms()) {
+        university.getClassrooms().forEach(classroom -> {
             LOGGER.info(classroom.toString());
-        }
+        });
 
         LOGGER.info("");
         getIntInput("Enter zero (0) to go back: ");

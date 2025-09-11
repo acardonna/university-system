@@ -8,6 +8,9 @@ import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
 
+import com.solvd.university.model.annotation.RequiredExperience;
+
+@RequiredExperience(level = 2)
 public class Course<T, D extends Department<T>> implements Identifiable, Schedulable {
 
     private String courseCode;
@@ -55,7 +58,7 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
     }
 
     public Course(String courseCode, String courseName, int creditHours, Professor professor, D department,
-                  CourseDifficulty difficulty) {
+            CourseDifficulty difficulty) {
         this.courseCode = courseCode;
         this.courseName = courseName;
         this.creditHours = creditHours;
@@ -68,7 +71,7 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
     }
 
     public Course(int courseNumber, String courseName, int creditHours, Professor professor, D department,
-                  CourseDifficulty difficulty) {
+            CourseDifficulty difficulty) {
         this.courseCode = department.getDepartmentCode() + String.valueOf(courseNumber);
         this.courseName = courseName;
         this.creditHours = creditHours;
@@ -149,12 +152,13 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
         gradesByDate.put(LocalDateTime.now(), grade);
     }
 
+    @RequiredExperience(level = 3)
     public void addGrade(Grade<Double> grade, GradeValidator validator) {
-        if (validator.isValid(grade.getValue())) {
+        if (validator.isValid(grade.value())) {
             courseGrades.add(grade);
             gradesByDate.put(LocalDateTime.now(), grade);
         } else {
-            throw new IllegalArgumentException("Invalid grade value: " + grade.getValue());
+            throw new IllegalArgumentException("Invalid grade value: " + grade.value());
         }
     }
 
@@ -164,11 +168,11 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
     }
 
     public void addGradeWithDate(Grade<Double> grade, LocalDateTime date, GradeValidator validator) {
-        if (validator.isValid(grade.getValue())) {
+        if (validator.isValid(grade.value())) {
             courseGrades.add(grade);
             gradesByDate.put(date, grade);
         } else {
-            throw new IllegalArgumentException("Invalid grade value: " + grade.getValue());
+            throw new IllegalArgumentException("Invalid grade value: " + grade.value());
         }
     }
 
@@ -181,14 +185,14 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
             return 0.0;
         }
         return courseGrades.stream()
-                .mapToDouble(Grade::getValue)
+                .mapToDouble(Grade::value)
                 .average()
                 .orElse(0.0);
     }
 
     public List<Grade<Double>> getGradesForSemester(String semester) {
         return courseGrades.stream()
-                .filter(grade -> grade.getSemester().equals(semester))
+                .filter(grade -> grade.semester().equals(semester))
                 .toList();
     }
 
@@ -228,7 +232,7 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
     public String toString() {
         String sched = (start != null && end != null && classroom != null)
                 ? String.format(" | %s to %s in %s %s", start, end, classroom.getBuilding().getName(),
-                classroom.getRoomNumber())
+                        classroom.getRoomNumber())
                 : "";
         String gradeInfo = courseGrades.isEmpty()
                 ? ""

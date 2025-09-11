@@ -171,8 +171,8 @@ public class UserInterface {
 
         String statusMessage = student.isEnrolled()
                 ? String.format("You are enrolled in %s (Status: %s)",
-                student.getEnrolledProgram().getName(),
-                student.getEnrollmentStatus().getDisplayName())
+                        student.getEnrolledProgram().getName(),
+                        student.getEnrollmentStatus().getDisplayName())
                 : "No enrollment yet (Status: " + student.getEnrollmentStatus().getDisplayName() + ")";
 
         LOGGER.info("Current Status: " + statusMessage);
@@ -223,7 +223,6 @@ public class UserInterface {
         }
     }
 
-    // TODO: implement the functionality to manually add grades
     private void viewStudentGrades(Student student) {
         LOGGER.info("=== My Academic Record ===");
         LOGGER.info("");
@@ -244,7 +243,7 @@ public class UserInterface {
         LOGGER.info("");
 
         Map<String, List<Grade<Double>>> gradesBySemester = grades.stream()
-                .collect(Collectors.groupingBy(Grade::getSemester));
+                .collect(Collectors.groupingBy(Grade::semester));
 
         gradesBySemester.entrySet().forEach(entry -> {
             String semester = entry.getKey();
@@ -259,20 +258,20 @@ public class UserInterface {
             LOGGER.info("");
 
             semesterGrades.forEach(grade -> {
-                String letterGrade = convertToLetterGrade(grade.getValue());
-                boolean gradeValid = STANDARD_GRADE_VALIDATOR.isValid(grade.getValue());
+                String letterGrade = convertToLetterGrade(grade.value());
+                boolean gradeValid = STANDARD_GRADE_VALIDATOR.isValid(grade.value());
                 String validationMark = gradeValid ? "✓" : "⚠";
                 LOGGER.info(String.format("  %-30s | %.1f (%s) %s",
-                        grade.getSubject(), grade.getValue(), letterGrade, validationMark));
+                        grade.subject(), grade.value(), letterGrade, validationMark));
             });
             LOGGER.info("");
         });
 
-        long aGrades = grades.stream().filter(g -> g.getValue() >= 90).count();
-        long bGrades = grades.stream().filter(g -> g.getValue() >= 80 && g.getValue() < 90).count();
-        long cGrades = grades.stream().filter(g -> g.getValue() >= 70 && g.getValue() < 80).count();
-        long dGrades = grades.stream().filter(g -> g.getValue() >= 60 && g.getValue() < 70).count();
-        long fGrades = grades.stream().filter(g -> g.getValue() < 60).count();
+        long aGrades = grades.stream().filter(g -> g.value() >= 90).count();
+        long bGrades = grades.stream().filter(g -> g.value() >= 80 && g.value() < 90).count();
+        long cGrades = grades.stream().filter(g -> g.value() >= 70 && g.value() < 80).count();
+        long dGrades = grades.stream().filter(g -> g.value() >= 60 && g.value() < 70).count();
+        long fGrades = grades.stream().filter(g -> g.value() < 60).count();
 
         LOGGER.info("=== Grade Distribution ===");
         LOGGER.info(String.format("A's: %d | B's: %d | C's: %d | D's: %d | F's: %d",
@@ -316,7 +315,7 @@ public class UserInterface {
         }
 
         Enrollment studentEnrollment = university.getEnrollments().stream()
-                .filter(enrollment -> enrollment.getStudent().equals(student))
+                .filter(enrollment -> enrollment.student().equals(student))
                 .findFirst()
                 .orElse(null);
 
@@ -334,7 +333,7 @@ public class UserInterface {
         LOGGER.info("Status Description: " + student.getEnrollmentStatus().getDescription());
 
         if (studentEnrollment != null) {
-            LOGGER.info("Enrollment Date: " + studentEnrollment.getEnrollmentDate());
+            LOGGER.info("Enrollment Date: " + studentEnrollment.enrollmentDate());
         }
         LOGGER.info("");
     }
@@ -415,7 +414,7 @@ public class UserInterface {
                 student.enroll(selectedProgram);
 
                 LOGGER.info("Congrats! You have enrolled in " + selectedProgram.getName());
-                LOGGER.info("Enrollment Date: " + enrollment.getEnrollmentDate());
+                LOGGER.info("Enrollment Date: " + enrollment.enrollmentDate());
                 LOGGER.info("Outstanding Balance: " + student.getOutstandingBalanceFormatted());
                 LOGGER.info("");
                 break;

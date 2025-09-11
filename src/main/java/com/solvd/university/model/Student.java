@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import com.solvd.university.model.annotation.RequiredExperience;
 import com.solvd.university.model.exception.InvalidPaymentException;
 
 public class Student extends Person implements Identifiable, Enrollable, Payable {
@@ -79,6 +80,7 @@ public class Student extends Person implements Identifiable, Enrollable, Payable
         this.gradeLevel = gradeLevel;
     }
 
+    @RequiredExperience(level = 2)
     public void advanceGradeLevel() {
         switch (gradeLevel) {
             case FRESHMAN -> gradeLevel = GradeLevel.SOPHOMORE;
@@ -111,10 +113,10 @@ public class Student extends Person implements Identifiable, Enrollable, Payable
     }
 
     public void addGrade(Grade<Double> grade, GradeValidator validator) {
-        if (validator.isValid(grade.getValue())) {
+        if (validator.isValid(grade.value())) {
             grades.add(grade);
         } else {
-            throw new IllegalArgumentException("Invalid grade value: " + grade.getValue());
+            throw new IllegalArgumentException("Invalid grade value: " + grade.value());
         }
     }
 
@@ -124,7 +126,7 @@ public class Student extends Person implements Identifiable, Enrollable, Payable
 
     public List<Grade<Double>> getGradesForSemester(String semester) {
         return grades.stream()
-                .filter(grade -> grade.getSemester().equals(semester))
+                .filter(grade -> grade.semester().equals(semester))
                 .toList();
     }
 
@@ -133,7 +135,7 @@ public class Student extends Person implements Identifiable, Enrollable, Payable
             return 0.0;
         }
         return grades.stream()
-                .mapToDouble(Grade::getValue)
+                .mapToDouble(Grade::value)
                 .average()
                 .orElse(0.0);
     }
@@ -144,7 +146,7 @@ public class Student extends Person implements Identifiable, Enrollable, Payable
             return 0.0;
         }
         return semesterGrades.stream()
-                .mapToDouble(Grade::getValue)
+                .mapToDouble(Grade::value)
                 .average()
                 .orElse(0.0);
     }

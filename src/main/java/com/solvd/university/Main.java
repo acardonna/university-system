@@ -3,8 +3,10 @@ package com.solvd.university;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,31 +36,32 @@ public class Main {
 
         Scanner scanner = new Scanner(System.in);
 
-        // University university = new University("Oxford");
+        University university = new University("Oxford");
 
-        // initializeProgramCatalog(university);
-        // initializeProfessors(university);
-        // initializeCourses(university);
-        // initializeClassrooms(university);
+        initializeProgramCatalog(university);
+        initializeProfessors(university);
+        initializeCourses(university);
+        initializeClassrooms(university);
 
-        // UserInterface userInterface = new UserInterface(scanner, university);
-        // userInterface.start();
+        UserInterface userInterface = new UserInterface(scanner, university);
+        userInterface.start();
 
-        workWithFiles(scanner);
+        // workWithFiles(scanner);
     }
 
+    @SuppressWarnings("unused")
     private static void workWithFiles(Scanner scanner) {
         try {
             List<String> text = FileUtils.readLines(new File("src/main/resources/input.txt"), StandardCharsets.UTF_8);
 
-            java.util.stream.Stream.generate(() -> {
-                        LOGGER.info("Enter the word to find (or 0 to exit): ");
-                        return scanner.nextLine();
-                    })
+            Stream.generate(() -> {
+                LOGGER.info("Enter the word to find (or 0 to exit): ");
+                return scanner.nextLine();
+            })
                     .takeWhile(wordToFind -> !"0".equals(wordToFind))
                     .forEach(wordToFind -> {
                         int count = (int) text.stream()
-                                .flatMap(line -> java.util.Arrays.stream(StringUtils.split(line)))
+                                .flatMap(line -> Arrays.stream(StringUtils.split(line)))
                                 .map(word -> StringUtils.strip(word, ".,;:!?\"'()[]{}"))
                                 .filter(strippedWord -> strippedWord.equalsIgnoreCase(wordToFind))
                                 .count();

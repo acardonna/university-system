@@ -23,6 +23,7 @@ import com.solvd.university.model.CourseDifficulty;
 import com.solvd.university.model.Department;
 import com.solvd.university.model.EngineeringDepartment;
 import com.solvd.university.model.MathematicsDepartment;
+import com.solvd.university.model.MessagePrinter;
 import com.solvd.university.model.Professor;
 import com.solvd.university.model.Program;
 import com.solvd.university.model.University;
@@ -34,19 +35,72 @@ public class Main {
 
     public static void main(String[] args) {
 
-        Scanner scanner = new Scanner(System.in);
+//        Scanner scanner = new Scanner(System.in);
+//
+//        University university = new University("Oxford");
+//
+//        initializeProgramCatalog(university);
+//        initializeProfessors(university);
+//        initializeCourses(university);
+//        initializeClassrooms(university);
 
-        University university = new University("Oxford");
+//        UserInterface userInterface = new UserInterface(scanner, university);
+//        userInterface.start();
 
-        initializeProgramCatalog(university);
-        initializeProfessors(university);
-        initializeCourses(university);
-        initializeClassrooms(university);
+//         workWithFiles(scanner);
+        workWithThreads();
+    }
 
-        UserInterface userInterface = new UserInterface(scanner, university);
-        userInterface.start();
+    private static void workWithThreads() {
+        LOGGER.info("===== Doing some work with Threads =====");
 
-        // workWithFiles(scanner);
+        Thread thread1 = new Thread(() -> {
+            MessagePrinter printer = MessagePrinter.getInstance();
+            for (int i = 1; i <= 3; i++) {
+                printer.printMessage("Hello from Thread 1 - Message " + i);
+                sleep(100);
+            }
+        }, "Worker-1");
+
+        Thread thread2 = new Thread(() -> {
+            MessagePrinter printer = MessagePrinter.getInstance();
+            for (int i = 1; i <= 3; i++) {
+                printer.printMessage("Greetings from Thread 2 - Message " + i);
+                sleep(150);
+            }
+        }, "Worker-2");
+
+        Thread thread3 = new Thread(() -> {
+            MessagePrinter printer = MessagePrinter.getInstance();
+            for (int i = 1; i <= 3; i++) {
+                printer.printMessage("Thread 3 reporting - Message " + i);
+                sleep(120);
+            }
+        }, "Worker-3");
+
+        thread1.start();
+        thread2.start();
+        thread3.start();
+
+        try {
+            thread1.join();
+            thread2.join();
+            thread3.join();
+        } catch (InterruptedException e) {
+            LOGGER.error("Main thread was interrupted", e);
+        }
+
+        MessagePrinter mainPrinter = MessagePrinter.getInstance();
+        mainPrinter.printMessage("Work completed.");
+    }
+
+    // This to sleep without checked exception handling
+    private static void sleep(int milliseconds) {
+        try {
+            Thread.sleep(milliseconds);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     @SuppressWarnings("unused")
@@ -55,9 +109,9 @@ public class Main {
             List<String> text = FileUtils.readLines(new File("src/main/resources/input.txt"), StandardCharsets.UTF_8);
 
             Stream.generate(() -> {
-                LOGGER.info("Enter the word to find (or 0 to exit): ");
-                return scanner.nextLine();
-            })
+                        LOGGER.info("Enter the word to find (or 0 to exit): ");
+                        return scanner.nextLine();
+                    })
                     .takeWhile(wordToFind -> !"0".equals(wordToFind))
                     .forEach(wordToFind -> {
                         int count = (int) text.stream()

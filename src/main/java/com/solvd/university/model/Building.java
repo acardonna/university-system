@@ -6,13 +6,10 @@ public class Building extends Facility {
         super(name);
     }
 
-    public Building() {
-    }
+    public Building() {}
 
     @Override
     public String toString() {
-        return "Building{"
-                + "name='" + name + '\''
-                + '}';
+        return "Building{" + "name='" + name + '\'' + '}';
     }
 }

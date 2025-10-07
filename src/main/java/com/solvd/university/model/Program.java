@@ -18,7 +18,10 @@ public class Program implements Identifiable {
         this.duration = duration;
         this.price = price;
         this.department = department;
-        this.id = (department != null ? department.getDepartmentCode() : "GEN") + "-PRG-" + Math.abs(Objects.hash(name, duration, price)) % 100000;
+        this.id =
+            (department != null ? department.getDepartmentCode() : "GEN") +
+            "-PRG-" +
+            (Math.abs(Objects.hash(name, duration, price)) % 100000);
     }
 
     public Program() {
@@ -63,7 +66,12 @@ public class Program implements Identifiable {
             return false;
         }
         Program program = (Program) o;
-        return duration == program.duration && Double.compare(price, program.price) == 0 && Objects.equals(name, program.name) && Objects.equals(department, program.department);
+        return (
+            duration == program.duration &&
+            Double.compare(price, program.price) == 0 &&
+            Objects.equals(name, program.name) &&
+            Objects.equals(department, program.department)
+        );
     }
 
     @Override

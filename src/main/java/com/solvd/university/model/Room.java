@@ -7,8 +7,7 @@ public abstract class Room extends Facility {
     protected int capacity;
     protected String roomType;
 
-    protected Room() {
-    }
+    protected Room() {}
 
     protected Room(String name, int capacity, String roomType) {
         super(name);

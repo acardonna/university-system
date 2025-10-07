@@ -1,18 +1,5 @@
 package com.solvd.university;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
-import java.util.stream.Stream;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.solvd.university.model.ArtsDepartment;
 import com.solvd.university.model.Building;
 import com.solvd.university.model.BusinessDepartment;
@@ -28,55 +15,74 @@ import com.solvd.university.model.Professor;
 import com.solvd.university.model.Program;
 import com.solvd.university.model.University;
 import com.solvd.university.model.UserInterface;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
+import java.util.stream.Stream;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Main {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
     public static void main(String[] args) {
+        //        Scanner scanner = new Scanner(System.in);
+        //
+        //        University university = new University("Oxford");
+        //
+        //        initializeProgramCatalog(university);
+        //        initializeProfessors(university);
+        //        initializeCourses(university);
+        //        initializeClassrooms(university);
 
-//        Scanner scanner = new Scanner(System.in);
-//
-//        University university = new University("Oxford");
-//
-//        initializeProgramCatalog(university);
-//        initializeProfessors(university);
-//        initializeCourses(university);
-//        initializeClassrooms(university);
+        //        UserInterface userInterface = new UserInterface(scanner, university);
+        //        userInterface.start();
 
-//        UserInterface userInterface = new UserInterface(scanner, university);
-//        userInterface.start();
-
-//         workWithFiles(scanner);
+        //         workWithFiles(scanner);
         workWithThreads();
     }
 
     private static void workWithThreads() {
         LOGGER.info("===== Doing some work with Threads =====");
 
-        Thread thread1 = new Thread(() -> {
-            MessagePrinter printer = MessagePrinter.getInstance();
-            for (int i = 1; i <= 3; i++) {
-                printer.printMessage("Hello from Thread 1 - Message " + i);
-                sleep(100);
-            }
-        }, "Worker-1");
+        Thread thread1 = new Thread(
+            () -> {
+                MessagePrinter printer = MessagePrinter.getInstance();
+                for (int i = 1; i <= 3; i++) {
+                    printer.printMessage("Hello from Thread 1 - Message " + i);
+                    sleep(100);
+                }
+            },
+            "Worker-1"
+        );
 
-        Thread thread2 = new Thread(() -> {
-            MessagePrinter printer = MessagePrinter.getInstance();
-            for (int i = 1; i <= 3; i++) {
-                printer.printMessage("Greetings from Thread 2 - Message " + i);
-                sleep(150);
-            }
-        }, "Worker-2");
+        Thread thread2 = new Thread(
+            () -> {
+                MessagePrinter printer = MessagePrinter.getInstance();
+                for (int i = 1; i <= 3; i++) {
+                    printer.printMessage("Greetings from Thread 2 - Message " + i);
+                    sleep(150);
+                }
+            },
+            "Worker-2"
+        );
 
-        Thread thread3 = new Thread(() -> {
-            MessagePrinter printer = MessagePrinter.getInstance();
-            for (int i = 1; i <= 3; i++) {
-                printer.printMessage("Thread 3 reporting - Message " + i);
-                sleep(120);
-            }
-        }, "Worker-3");
+        Thread thread3 = new Thread(
+            () -> {
+                MessagePrinter printer = MessagePrinter.getInstance();
+                for (int i = 1; i <= 3; i++) {
+                    printer.printMessage("Thread 3 reporting - Message " + i);
+                    sleep(120);
+                }
+            },
+            "Worker-3"
+        );
 
         thread1.start();
         thread2.start();
@@ -109,28 +115,32 @@ public class Main {
             List<String> text = FileUtils.readLines(new File("src/main/resources/input.txt"), StandardCharsets.UTF_8);
 
             Stream.generate(() -> {
-                        LOGGER.info("Enter the word to find (or 0 to exit): ");
-                        return scanner.nextLine();
-                    })
-                    .takeWhile(wordToFind -> !"0".equals(wordToFind))
-                    .forEach(wordToFind -> {
-                        int count = (int) text.stream()
-                                .flatMap(line -> Arrays.stream(StringUtils.split(line)))
-                                .map(word -> StringUtils.strip(word, ".,;:!?\"'()[]{}"))
-                                .filter(strippedWord -> strippedWord.equalsIgnoreCase(wordToFind))
-                                .count();
+                LOGGER.info("Enter the word to find (or 0 to exit): ");
+                return scanner.nextLine();
+            })
+                .takeWhile(wordToFind -> !"0".equals(wordToFind))
+                .forEach(wordToFind -> {
+                    int count = (int) text
+                        .stream()
+                        .flatMap(line -> Arrays.stream(StringUtils.split(line)))
+                        .map(word -> StringUtils.strip(word, ".,;:!?\"'()[]{}"))
+                        .filter(strippedWord -> strippedWord.equalsIgnoreCase(wordToFind))
+                        .count();
 
-                        String message = String.format("%s: %d%n", wordToFind, count);
-                        try {
-                            FileUtils.writeStringToFile(new File("src/main/resources/output.txt"), message,
-                                    StandardCharsets.UTF_8,
-                                    true);
-                        } catch (IOException e) {
-                            LOGGER.info("Error writing to file: " + e.getMessage());
-                        }
+                    String message = String.format("%s: %d%n", wordToFind, count);
+                    try {
+                        FileUtils.writeStringToFile(
+                            new File("src/main/resources/output.txt"),
+                            message,
+                            StandardCharsets.UTF_8,
+                            true
+                        );
+                    } catch (IOException e) {
+                        LOGGER.info("Error writing to file: " + e.getMessage());
+                    }
 
-                        LOGGER.info(message);
-                    });
+                    LOGGER.info(message);
+                });
         } catch (IOException e) {
             LOGGER.info(e.getMessage());
         }
@@ -145,8 +155,9 @@ public class Main {
 
         university.getProgramCatalog().add(new Program("Bachelor of Computer Science", 4, 40000.0, computerScience));
         university.getProgramCatalog().add(new Program("Master of Software Engineering", 2, 30000.0, computerScience));
-        university.getProgramCatalog()
-                .add(new Program("Bachelor of Information Technology", 4, 38000.0, computerScience));
+        university
+            .getProgramCatalog()
+            .add(new Program("Bachelor of Information Technology", 4, 38000.0, computerScience));
         university.getProgramCatalog().add(new Program("Master of Data Science", 2, 35000.0, computerScience));
 
         university.getProgramCatalog().add(new Program("Bachelor of Business Administration", 4, 35000.0, business));
@@ -188,13 +199,30 @@ public class Main {
         Professor johnSmith = university.getProfessorRegistry().get(0);
         Professor sarahJohnson = university.getProfessorRegistry().get(1);
 
-        Course<String, ComputerScienceDepartment> introductionToProgramming = new Course<>(101,
-                "Introduction to Programming", 3, johnSmith, new ComputerScienceDepartment(),
-                CourseDifficulty.INTRODUCTORY);
-        Course<String, ComputerScienceDepartment> dataStructures = new Course<>(201, "Data Structures", 4, johnSmith,
-                new ComputerScienceDepartment(), CourseDifficulty.INTERMEDIATE);
-        Course<String, BusinessDepartment> businessFundamentals = new Course<>(101, "Business Fundamentals", 3,
-                sarahJohnson, new BusinessDepartment(), CourseDifficulty.INTRODUCTORY);
+        Course<String, ComputerScienceDepartment> introductionToProgramming = new Course<>(
+            101,
+            "Introduction to Programming",
+            3,
+            johnSmith,
+            new ComputerScienceDepartment(),
+            CourseDifficulty.INTRODUCTORY
+        );
+        Course<String, ComputerScienceDepartment> dataStructures = new Course<>(
+            201,
+            "Data Structures",
+            4,
+            johnSmith,
+            new ComputerScienceDepartment(),
+            CourseDifficulty.INTERMEDIATE
+        );
+        Course<String, BusinessDepartment> businessFundamentals = new Course<>(
+            101,
+            "Business Fundamentals",
+            3,
+            sarahJohnson,
+            new BusinessDepartment(),
+            CourseDifficulty.INTRODUCTORY
+        );
 
         johnSmith.assignCourse(introductionToProgramming);
         johnSmith.assignCourse(dataStructures);
@@ -204,13 +232,15 @@ public class Main {
             Classroom classroom1 = university.getClassrooms().get(0);
             Classroom classroom2 = university.getClassrooms().get(1);
             introductionToProgramming.schedule(
-                    java.time.LocalDateTime.now().plusDays(1),
-                    java.time.LocalDateTime.now().plusDays(1).plusHours(2),
-                    classroom1);
+                java.time.LocalDateTime.now().plusDays(1),
+                java.time.LocalDateTime.now().plusDays(1).plusHours(2),
+                classroom1
+            );
             dataStructures.schedule(
-                    java.time.LocalDateTime.now().plusDays(2),
-                    java.time.LocalDateTime.now().plusDays(2).plusHours(2),
-                    classroom2);
+                java.time.LocalDateTime.now().plusDays(2),
+                java.time.LocalDateTime.now().plusDays(2).plusHours(2),
+                classroom2
+            );
         }
 
         university.addCourse(introductionToProgramming);

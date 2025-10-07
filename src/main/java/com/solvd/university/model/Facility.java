@@ -10,8 +10,7 @@ public abstract class Facility {
         this.name = name;
     }
 
-    protected Facility() {
-    }
+    protected Facility() {}
 
     public String getName() {
         return name;

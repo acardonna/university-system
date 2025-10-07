@@ -11,9 +11,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.METHOD })
 public @interface RequiredExperience {
-
-  /**
-   * The required academic level (1-5, where 1=Freshman, 5=Graduate)
-   */
-  int level() default 1;
+    /**
+     * The required academic level (1-5, where 1=Freshman, 5=Graduate)
+     */
+    int level() default 1;
 }

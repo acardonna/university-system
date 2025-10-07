@@ -4,7 +4,6 @@ public enum EnrollmentStatus {
     ACTIVE("Active", "Student is currently enrolled and in good standing"),
     INACTIVE("Inactive", "Student is not currently enrolled");
 
-
     private final String displayName;
     private final String description;
 

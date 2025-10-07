@@ -1,13 +1,11 @@
 package com.solvd.university.model;
 
 import java.time.LocalDate;
+
 public record Enrollment(Student student, Program program, LocalDate enrollmentDate, EnrollmentStatus status) {
-
-
     public Enrollment(Student student, Program program) {
         this(student, program, LocalDate.now(), EnrollmentStatus.ACTIVE);
     }
-
 
     public Enrollment {
         if (student == null) {
@@ -24,7 +22,6 @@ public record Enrollment(Student student, Program program, LocalDate enrollmentD
         }
     }
 
-  
     public Enrollment withStatus(EnrollmentStatus newStatus) {
         return new Enrollment(student, program, enrollmentDate, newStatus);
     }

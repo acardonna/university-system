@@ -1,5 +1,7 @@
 package com.solvd.university.model;
 
+import com.solvd.university.model.annotation.RequiredExperience;
+import com.solvd.university.model.exception.InvalidPaymentException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -8,9 +10,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-
-import com.solvd.university.model.annotation.RequiredExperience;
-import com.solvd.university.model.exception.InvalidPaymentException;
 
 public class Student extends Person implements Identifiable, Enrollable, Payable {
 
@@ -87,8 +86,7 @@ public class Student extends Person implements Identifiable, Enrollable, Payable
             case SOPHOMORE -> gradeLevel = GradeLevel.JUNIOR;
             case JUNIOR -> gradeLevel = GradeLevel.SENIOR;
             case SENIOR -> gradeLevel = GradeLevel.GRADUATE;
-            case GRADUATE -> {
-            }
+            case GRADUATE -> {}
         }
     }
 
@@ -125,19 +123,17 @@ public class Student extends Person implements Identifiable, Enrollable, Payable
     }
 
     public List<Grade<Double>> getGradesForSemester(String semester) {
-        return grades.stream()
-                .filter(grade -> grade.semester().equals(semester))
-                .toList();
+        return grades
+            .stream()
+            .filter(grade -> grade.semester().equals(semester))
+            .toList();
     }
 
     public double calculateAverageGrade() {
         if (grades.isEmpty()) {
             return 0.0;
         }
-        return grades.stream()
-                .mapToDouble(Grade::value)
-                .average()
-                .orElse(0.0);
+        return grades.stream().mapToDouble(Grade::value).average().orElse(0.0);
     }
 
     public double calculateSemesterAverage(String semester) {
@@ -145,10 +141,7 @@ public class Student extends Person implements Identifiable, Enrollable, Payable
         if (semesterGrades.isEmpty()) {
             return 0.0;
         }
-        return semesterGrades.stream()
-                .mapToDouble(Grade::value)
-                .average()
-                .orElse(0.0);
+        return semesterGrades.stream().mapToDouble(Grade::value).average().orElse(0.0);
     }
 
     @Override
@@ -170,19 +163,37 @@ public class Student extends Person implements Identifiable, Enrollable, Payable
 
     @Override
     public String toString() {
-        return "Student{"
-                + "name='" + getFullName() + '\''
-                + ", age=" + age
-                + ", email='" + email + '\''
-                + ", studentNumber=" + studentNumber
-                + ", gradeLevel=" + gradeLevel.getDisplayName() + " (Year " + gradeLevel.getYear() + ")"
-                + ", enrolledProgram=" + enrolledProgram
-                + ", enrollmentStatus=" + enrollmentStatus
-                + ", isRegistered=" + isRegistered
-                + ", balance=" + balance
-                + ", averageGrade=" + String.format("%.2f", calculateAverageGrade())
-                + ", totalGrades=" + grades.size()
-                + '}';
+        return (
+            "Student{" +
+            "name='" +
+            getFullName() +
+            '\'' +
+            ", age=" +
+            age +
+            ", email='" +
+            email +
+            '\'' +
+            ", studentNumber=" +
+            studentNumber +
+            ", gradeLevel=" +
+            gradeLevel.getDisplayName() +
+            " (Year " +
+            gradeLevel.getYear() +
+            ")" +
+            ", enrolledProgram=" +
+            enrolledProgram +
+            ", enrollmentStatus=" +
+            enrollmentStatus +
+            ", isRegistered=" +
+            isRegistered +
+            ", balance=" +
+            balance +
+            ", averageGrade=" +
+            String.format("%.2f", calculateAverageGrade()) +
+            ", totalGrades=" +
+            grades.size() +
+            '}'
+        );
     }
 
     @Override
@@ -209,8 +220,12 @@ public class Student extends Person implements Identifiable, Enrollable, Payable
         }
         if (amount > balance) {
             throw new InvalidPaymentException(
-                    "Payment amount ($" + String.format("%.2f", amount) + ") exceeds outstanding balance ($"
-                            + String.format("%.2f", balance) + "). Please enter a valid payment amount.");
+                "Payment amount ($" +
+                    String.format("%.2f", amount) +
+                    ") exceeds outstanding balance ($" +
+                    String.format("%.2f", balance) +
+                    "). Please enter a valid payment amount."
+            );
         }
         balance = balance - amount;
     }

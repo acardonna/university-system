@@ -16,8 +16,7 @@ public class Classroom extends Room implements Schedulable {
         this.building = building;
     }
 
-    public Classroom() {
-    }
+    public Classroom() {}
 
     public String getRoomNumber() {
         return roomNumber;
@@ -56,7 +55,12 @@ public class Classroom extends Room implements Schedulable {
             return false;
         }
         Classroom classroom = (Classroom) o;
-        return capacity == classroom.capacity && Objects.equals(roomNumber, classroom.roomNumber) && Objects.equals(building, classroom.building) && Objects.equals(roomType, classroom.roomType);
+        return (
+            capacity == classroom.capacity &&
+            Objects.equals(roomNumber, classroom.roomNumber) &&
+            Objects.equals(building, classroom.building) &&
+            Objects.equals(roomType, classroom.roomType)
+        );
     }
 
     @Override
@@ -67,9 +71,15 @@ public class Classroom extends Room implements Schedulable {
     @Override
     public String toString() {
         String scheduleInfo = (scheduledStart != null && scheduledEnd != null)
-                ? String.format(" | Scheduled: %s to %s", scheduledStart, scheduledEnd)
-                : "";
-        return String.format("Room %s - %s | Capacity: %d students | Type: %s%s",
-                roomNumber, building.getName(), capacity, roomType, scheduleInfo);
+            ? String.format(" | Scheduled: %s to %s", scheduledStart, scheduledEnd)
+            : "";
+        return String.format(
+            "Room %s - %s | Capacity: %d students | Type: %s%s",
+            roomNumber,
+            building.getName(),
+            capacity,
+            roomType,
+            scheduleInfo
+        );
     }
 }

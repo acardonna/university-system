@@ -1,5 +1,6 @@
 package com.solvd.university.model;
 
+import com.solvd.university.model.annotation.RequiredExperience;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,8 +8,6 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
-
-import com.solvd.university.model.annotation.RequiredExperience;
 
 @RequiredExperience(level = 2)
 public class Course<T, D extends Department<T>> implements Identifiable, Schedulable {
@@ -57,8 +56,14 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
         this.difficulty = CourseDifficulty.INTRODUCTORY;
     }
 
-    public Course(String courseCode, String courseName, int creditHours, Professor professor, D department,
-            CourseDifficulty difficulty) {
+    public Course(
+        String courseCode,
+        String courseName,
+        int creditHours,
+        Professor professor,
+        D department,
+        CourseDifficulty difficulty
+    ) {
         this.courseCode = courseCode;
         this.courseName = courseName;
         this.creditHours = creditHours;
@@ -70,8 +75,14 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
         this.difficulty = difficulty;
     }
 
-    public Course(int courseNumber, String courseName, int creditHours, Professor professor, D department,
-            CourseDifficulty difficulty) {
+    public Course(
+        int courseNumber,
+        String courseName,
+        int creditHours,
+        Professor professor,
+        D department,
+        CourseDifficulty difficulty
+    ) {
         this.courseCode = department.getDepartmentCode() + String.valueOf(courseNumber);
         this.courseName = courseName;
         this.creditHours = creditHours;
@@ -184,16 +195,14 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
         if (courseGrades.isEmpty()) {
             return 0.0;
         }
-        return courseGrades.stream()
-                .mapToDouble(Grade::value)
-                .average()
-                .orElse(0.0);
+        return courseGrades.stream().mapToDouble(Grade::value).average().orElse(0.0);
     }
 
     public List<Grade<Double>> getGradesForSemester(String semester) {
-        return courseGrades.stream()
-                .filter(grade -> grade.semester().equals(semester))
-                .toList();
+        return courseGrades
+            .stream()
+            .filter(grade -> grade.semester().equals(semester))
+            .toList();
     }
 
     public NavigableMap<LocalDateTime, Grade<Double>> getGradesByDate() {
@@ -218,9 +227,13 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
             return false;
         }
         Course<?, ?> course = (Course<?, ?>) o;
-        return creditHours == course.creditHours && Objects.equals(courseCode, course.courseCode)
-                && Objects.equals(courseName, course.courseName) && Objects.equals(professor, course.professor)
-                && Objects.equals(department, course.department);
+        return (
+            creditHours == course.creditHours &&
+            Objects.equals(courseCode, course.courseCode) &&
+            Objects.equals(courseName, course.courseName) &&
+            Objects.equals(professor, course.professor) &&
+            Objects.equals(department, course.department)
+        );
     }
 
     @Override
@@ -231,17 +244,28 @@ public class Course<T, D extends Department<T>> implements Identifiable, Schedul
     @Override
     public String toString() {
         String sched = (start != null && end != null && classroom != null)
-                ? String.format(" | %s to %s in %s %s", start, end, classroom.getBuilding().getName(),
-                        classroom.getRoomNumber())
-                : "";
-        String gradeInfo = courseGrades.isEmpty()
-                ? ""
-                : String.format(" | Avg Grade: %.1f", calculateCourseAverage());
+            ? String.format(
+                " | %s to %s in %s %s",
+                start,
+                end,
+                classroom.getBuilding().getName(),
+                classroom.getRoomNumber()
+            )
+            : "";
+        String gradeInfo = courseGrades.isEmpty() ? "" : String.format(" | Avg Grade: %.1f", calculateCourseAverage());
         String difficultyInfo = (difficulty != null)
-                ? String.format(" | Difficulty: %s", difficulty.getDisplayName())
-                : "";
-        return String.format("%s - %s | %d Credit Hours | Professor: %s | Department: %s%s%s%s",
-                getFormattedCourseCode(), courseName, creditHours, professor.getFullName(), department.getName(),
-                difficultyInfo, sched, gradeInfo);
+            ? String.format(" | Difficulty: %s", difficulty.getDisplayName())
+            : "";
+        return String.format(
+            "%s - %s | %d Credit Hours | Professor: %s | Department: %s%s%s%s",
+            getFormattedCourseCode(),
+            courseName,
+            creditHours,
+            professor.getFullName(),
+            department.getName(),
+            difficultyInfo,
+            sched,
+            gradeInfo
+        );
     }
 }

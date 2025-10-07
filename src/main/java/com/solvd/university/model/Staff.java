@@ -5,8 +5,7 @@ public abstract class Staff extends Person {
     protected Department<?> department;
     protected String title;
 
-    protected Staff() {
-    }
+    protected Staff() {}
 
     protected Staff(String firstName, String lastName, String email, Department<?> department, String title) {
         super(firstName, lastName, email);

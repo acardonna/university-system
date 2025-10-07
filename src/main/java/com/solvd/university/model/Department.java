@@ -11,8 +11,7 @@ public abstract class Department<T> {
         this.name = name;
     }
 
-    public Department() {
-    }
+    public Department() {}
 
     public abstract T getDepartmentCode();
 
@@ -38,9 +37,6 @@ public abstract class Department<T> {
 
     @Override
     public String toString() {
-        return "Department{" +
-                "name='" + name + '\'' +
-                ", code='" + getDepartmentCode() + '\'' +
-                '}';
+        return "Department{" + "name='" + name + '\'' + ", code='" + getDepartmentCode() + '\'' + '}';
     }
 }

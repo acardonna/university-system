@@ -8,8 +8,7 @@ public abstract class Person {
     protected String lastName;
     protected String email;
 
-    protected Person() {
-    }
+    protected Person() {}
 
     protected Person(String firstName, String lastName, String email) {
         this.firstName = firstName;
@@ -54,7 +53,11 @@ public abstract class Person {
             return false;
         }
         Person person = (Person) o;
-        return Objects.equals(firstName, person.firstName) && Objects.equals(lastName, person.lastName) && Objects.equals(email, person.email);
+        return (
+            Objects.equals(firstName, person.firstName) &&
+            Objects.equals(lastName, person.lastName) &&
+            Objects.equals(email, person.email)
+        );
     }
 
     @Override

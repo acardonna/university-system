@@ -5,12 +5,15 @@ out/
 .idea/
 *.iml
 
-# Maven
+### Maven ###
 target/
 
 ### VSCode ###
 .vscode/
 bin/
+
+### Node.js ###
+node_modules/
 
 ### Mac OS ###
 .DS_Store
